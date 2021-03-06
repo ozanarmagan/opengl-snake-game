@@ -94,7 +94,7 @@ public:
     {
         snakepart new_part;
         new_part.part_dir = parts[score].part_dir;
-        if (parts[score].part_dir == UP)
+        if (parts[score].last_move == UP)
         {
             new_part = parts[score];
             new_part.topLeft.y-=step;
@@ -102,7 +102,7 @@ public:
             new_part.bottomRight.y-=step;
             new_part.bottomLeft.y-=step;
         }
-        else if (parts[score].part_dir == DOWN)
+        else if (parts[score].last_move == DOWN)
         {
             new_part = parts[score];
             new_part.topLeft.y += step;
@@ -110,7 +110,7 @@ public:
             new_part.bottomRight.y += step;
             new_part.bottomLeft.y += step;
         }
-        else if (parts[score].part_dir == LEFT)
+        else if (parts[score].last_move == LEFT)
         {
             new_part = parts[score];
             new_part.topLeft.x += step;
@@ -118,7 +118,7 @@ public:
             new_part.bottomRight.x += step;
             new_part.bottomLeft.x += step;
         }
-        else if (parts[score].part_dir == RIGHT)
+        else if (parts[score].last_move == RIGHT)
         {
             new_part = parts[score];
             new_part.topLeft.x -= step;
@@ -204,6 +204,7 @@ void createApple() {
     apple.topRight = topRight;
     apple.bottomRight = bottomRight;
     apple.bottomLeft = bottomLeft;
+    cout << topLeft.x << " " << topRight.x;
 }
 snake player(startTopLeft, startTopRight, startBottomRight, startBottomLeft);
 void Start() {
@@ -292,17 +293,25 @@ int main(void)
         {
             player.move();
             last_move_time = glfwGetTime();
-            if (sqrt(pow(player.parts[0].topLeft.x - apple.topLeft.x, 2) + pow(player.parts[0].topLeft.y - apple.topLeft.y, 2)) < 0.001 && last_scored_apple.topLeft.x != apple.topLeft.x)
+            float center_of_apple_x = (apple.topLeft.x + apple.topRight.x) / float(2);
+            float center_of_apple_y = (apple.topLeft.y + apple.bottomLeft.y) / float(2);
+            float center_of_head_x = (player.parts[0].topLeft.x + player.parts[0].topRight.x) / float(2);
+            float center_of_head_y = (player.parts[0].topLeft.y + player.parts[0].bottomLeft.y) / float(2);
+            for (int i = 1; i < length; i++)
+            {
+                float center_of_part_x = (player.parts[i].topLeft.x + player.parts[0].topRight.x) / float(2);
+                float center_of_part_y = (player.parts[i].topLeft.y + player.parts[0].bottomLeft.y) / float(2);
+                if (sqrt(pow(center_of_head_x - center_of_part_x, 2) + pow(center_of_head_y - center_of_part_y, 2)) < 0.0001 && !isOver)
+                {
+                    cout << "ALARM" << endl;
+                }
+            }
+            if (sqrt(pow(center_of_head_x-center_of_apple_x,2)+pow(center_of_head_y-center_of_apple_y,2)) < 0.0001 && last_scored_apple.topLeft.x != apple.topLeft.x)
             {
                 last_scored_apple = apple;
                 player.increase_score();
                 createApple();
             }
-            for (int i = 0; i < player.length; i++)
-            {
-                cout << player.parts[i].part_dir << " ";
-            }
-            cout << endl;
         }
         string backgroundImagePath = path + "/Graphics/back.png";
         glBindTexture(GL_TEXTURE_2D, loadImage(backgroundImagePath.c_str()));
